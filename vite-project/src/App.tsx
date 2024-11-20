@@ -78,21 +78,19 @@ function Board({ xIsNext, squares, onPlay }) {
 }
 
 function App() {
-  const [xIsNext, setXIsNext] = useState(true);
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
+  const xIsNext = currentMove % 2 === 0; // currentMove가 짝수일 때는 xIsNext === true가 되고, currentMove가 홀수일 때는 xIsNext === false가 되는 것을 알 수 있음. 즉, currentMove의 값을 알고 있다면 언제나 xIsNext가 무엇인지 알아낼 수 있음. => 두 가지 state를 모두 저장할 필요가 없음.
   const currentSquares = history[currentMove];
 
   function handlePlay(nextSquares) {
     const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
     setHistory(nextHistory);
     setCurrentMove(nextHistory.length - 1);
-    setXIsNext(!xIsNext);
   }
 
   function jumpTo(nextMove: number) {
     setCurrentMove(nextMove);
-    setXIsNext(nextMove % 2 === 0);
   }
 
   const moves = history.map((squares, move) => {
