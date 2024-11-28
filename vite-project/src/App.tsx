@@ -1,7 +1,17 @@
+// 틱택토 게임 만들어보기
+
 import { useState } from "react";
 import "./App.css";
 
-function calculateWinner(squares) {
+type Squares = (string | null)[];
+
+type HistoryItem = {
+  squares: Squares;
+  position: number | null;
+};
+
+// 승자 계산 함수
+function calculateWinner(squares: Squares): string | null {
   const lines = [
     [0, 1, 2],
     [3, 4, 5],
@@ -21,7 +31,12 @@ function calculateWinner(squares) {
   return null;
 }
 
-function Square({ value, onSquareClick }) {
+type SquareProps = {
+  value: string | null;
+  onSquareClick: () => void;
+};
+
+function Square({ value, onSquareClick }: SquareProps) {
   return (
     <button className="square" onClick={onSquareClick}>
       {value}
@@ -29,9 +44,15 @@ function Square({ value, onSquareClick }) {
   );
 }
 
-function Board({ xIsNext, squares, onPlay }) {
+type BoardProps = {
+  xIsNext: boolean;
+  squares: Squares;
+  onPlay: (nextSquares: Squares, position: number) => void;
+};
+
+function Board({ xIsNext, squares, onPlay }: BoardProps) {
   const winner = calculateWinner(squares);
-  let status;
+  let status: string;
   if (winner) {
     status = "Winner: " + winner;
   } else {
@@ -44,14 +65,9 @@ function Board({ xIsNext, squares, onPlay }) {
     }
 
     const nextSquares = squares.slice();
+    nextSquares[i] = xIsNext ? "X" : "O";
 
-    if (xIsNext) {
-      nextSquares[i] = "X";
-    } else {
-      nextSquares[i] = "O";
-    }
-
-    onPlay(nextSquares);
+    onPlay(nextSquares, i); // 클릭 위치 전달
   }
 
   return (
@@ -77,29 +93,48 @@ function Board({ xIsNext, squares, onPlay }) {
   );
 }
 
+// App 컴포넌트
 function App() {
-  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const [history, setHistory] = useState<HistoryItem[]>([
+    { squares: Array(9).fill(null), position: null },
+  ]);
   const [currentMove, setCurrentMove] = useState(0);
-  const xIsNext = currentMove % 2 === 0; // currentMove가 짝수일 때는 xIsNext === true가 되고, currentMove가 홀수일 때는 xIsNext === false가 되는 것을 알 수 있음. 즉, currentMove의 값을 알고 있다면 언제나 xIsNext가 무엇인지 알아낼 수 있음. => 두 가지 state를 모두 저장할 필요가 없음.
-  const currentSquares = history[currentMove];
+  const xIsNext = currentMove % 2 === 0;
+  const currentSquares = history[currentMove].squares;
 
-  function handlePlay(nextSquares) {
-    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
-    setHistory(nextHistory);
-    setCurrentMove(nextHistory.length - 1);
+  function handlePlay(nextSquares: Squares, position: number) {
+    const nextHistory = history.slice(0, currentMove + 1);
+    setHistory([...nextHistory, { squares: nextSquares, position }]);
+    setCurrentMove(nextHistory.length);
   }
 
   function jumpTo(nextMove: number) {
     setCurrentMove(nextMove);
   }
 
+  // position -> (x, y) = (col, row) = (나누기 3한 결과의 나머지 + 1, 나누기 3한 결과의 몫 + 1)
+  // 0 ->  (1, 1)
+  // 1 ->  (2, 1)
+  // 2 ->  (3, 1)
+  // 3 ->  (1, 2)
+  // 4 ->  (2, 2)
+  // 5 ->  (3, 2)
+  // 6 ->  (1, 3)
+  // 7 ->  (2, 3)
+  // 8 ->  (3, 3)
+
+  function calculatePosition(index: number): string {
+    const row = Math.floor(index / 3) + 1; //  나누기 3한 결과의 나머지 + 1,
+    const col = (index % 3) + 1; // 나누기 3한 결과의 몫 + 1
+    return `(${col}, ${row})`;
+  }
+
   const moves = history.map((squares, move) => {
-    let description;
-    if (move > 0) {
-      description = "Go to move #" + move;
-    } else {
-      description = "Go to game start";
-    }
+    const description = move
+      ? `Go to move #${move}, Position: ${
+          squares.position !== null ? calculatePosition(squares.position) : ""
+        }`
+      : "Go to game start";
     return (
       <li key={move}>
         <button onClick={() => jumpTo(move)}>{description}</button>
@@ -120,5 +155,3 @@ function App() {
 }
 
 export default App;
-
-// 틱택토 게임 만들어보기
