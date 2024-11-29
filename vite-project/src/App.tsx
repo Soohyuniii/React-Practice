@@ -124,8 +124,8 @@ function App() {
   // 8 ->  (3, 3)
 
   function calculatePosition(index: number): string {
-    const row = Math.floor(index / 3) + 1; //  나누기 3한 결과의 나머지 + 1,
-    const col = (index % 3) + 1; // 나누기 3한 결과의 몫 + 1
+    const row = Math.floor(index / 3) + 1; //  나누기 3한 결과의 몫 + 1,
+    const col = (index % 3) + 1; // 나누기 3한 결과의 나머지s + 1
     return `(${col}, ${row})`;
   }
 
